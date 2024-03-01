@@ -1,0 +1,16 @@
+#%RAML 1.0 Library
+usage: This is common Library
+
+# Traits
+traits:
+  errorResponses: !include traits/errorResponses.raml
+  clientIdEnforced: !include traits/clientIdEnforcedSecurityScheme.raml
+  standardApiHeaders: !include traits/standardApiHeaders.raml
+
+# Resource Types
+resourceTypes:
+  commonResourceType: !include resourceTypes/commonResourceType.raml
+
+# Security Schemes
+securitySchemes:
+  jwtAuthentication: !include traits/jwtAuthenticationSecurityScheme.raml

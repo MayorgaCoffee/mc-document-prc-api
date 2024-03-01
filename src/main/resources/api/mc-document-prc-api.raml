@@ -1,0 +1,50 @@
+#%RAML 1.0
+title: MayorgaCoffee Document Processing API
+description: This API is responsible to perform transformations on EDI documents.
+
+# Common Library
+uses:
+  commonLibrary: /exchange_modules/d5150cda-4592-478a-b718-23ff3e2b60a3/common-library/1.0.0/common-library.raml
+
+# Data Types
+types:
+  healthCheck: !include /dataTypes/healthCheck.raml
+  postResponse: !include /dataTypes/postResponse.raml
+
+# Resource Types
+resourceTypes:
+  resourceType: !include /exchange_modules/d5150cda-4592-478a-b718-23ff3e2b60a3/common-library/1.0.0/resourceTypes/commonResourceType.raml
+
+
+# Resources
+/healthCheck:
+  is: [commonLibrary.errorResponses]
+  type:
+    resourceType:
+      getDescription: This resource is responsible for checking the system's health
+      getResponseType: healthCheck
+  get:
+   
+/document/{customerName}/inbound/{transactionType}: 
+  is: [commonLibrary.errorResponses,commonLibrary.standardApiHeaders]
+  uriParameters:
+    customerName:
+      type: string
+      example: "Costco_DS"
+    transactionType:
+      type: string
+      example: "850"
+  type:
+    resourceType:
+      postDescription: This resource is responsible for processing the EDI documents.
+      postRequestType:       
+      text/plain:
+            type: string
+      postResponseType: postResponse 
+  post:
+    body:
+      text/plain:
+          type: string
+
+
+

@@ -1,0 +1,32 @@
+# Dev Configuration
+
+# API Configuration
+api:
+  id: "0000"
+  basePath: "/*"
+  
+crypto:
+    publicKeyring: "certs/MayorgaCoffee_0x123B380C_public.gpg"
+    privateKeyring: "certs/MayorgaCoffee_0x123B380C_SECRET.gpg"
+ 
+# Certificate Configuration
+cert:
+  type: "PKCS12"
+  path: "certs/mayorgacert.p12"
+  alias: "mule-server"   
+  
+# MC System API Configuration
+sys:
+   basePath: "/v1"
+   protocol: "HTTPS"
+   host: "mc-netsuite-sys-api-dev.us-e2.cloudhub.io"
+   port: "443"
+   path: "/transaction"
+   
+# MC Experience API Configuration
+exp:
+   basePath: "/v1"
+   protocol: "HTTPS"
+   host: "mc-customer-exp-api-dev.us-e2.cloudhub.io"
+   port: "443"
+   path: ""

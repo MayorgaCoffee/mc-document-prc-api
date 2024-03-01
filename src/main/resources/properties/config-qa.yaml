@@ -1,0 +1,6 @@
+# Qa Configuration
+
+# API Configuration
+api:
+  id: "0000"
+  basePath: "/*"

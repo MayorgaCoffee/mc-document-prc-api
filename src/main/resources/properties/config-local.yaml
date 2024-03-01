@@ -1,0 +1,12 @@
+# Local Configuration
+
+# API Configuration
+api:
+  id: "0000"
+  basePath: "/*"
+  
+# Certificate Configuration
+cert:
+  type: "PKCS12"
+  path: "certs/mayorgacert.p12"
+  alias: "mule-server"

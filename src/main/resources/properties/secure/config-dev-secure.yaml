@@ -1,0 +1,10 @@
+# Dev Secure Credentials
+crypto:
+    keyId: "![J/cUFTOXAODAocA7a53Tig==]" 
+    fingerprint: "![hc+xIc60RAc11tojv0eaFW9RnewdbDIbFokdWKYo0laSRvxHii0GaG0RsL5eo6FI]"
+    passphrase: "![KvBwyxA97KBI1m0qTBlyQw==]"
+    
+# Certificate Configuration
+cert:
+  keyPassword: "![QUkJ2ogzXCbIGcgdr6IyNQ==]"
+  password: "![QUkJ2ogzXCbIGcgdr6IyNQ==]"
