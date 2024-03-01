@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <apikit:config name="mc-document-prc-api-config" api="mc-document-prc-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="mc-document-prc-api-main">
+        <http:listener config-ref="mc-customer-prc-api-listener-config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="mc-document-prc-api-config" />
+        <error-handler ref="common-exception-handler">           
+        </error-handler>
+    </flow>
+    <flow name="mc-document-prc-api-console">
+        <http:listener config-ref="mc-customer-prc-api-listener-config" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="mc-document-prc-api-config" />
+        <error-handler ref="common-exception-handler">           
+        </error-handler>
+    </flow>
+    <flow name="get:\healthCheck:mc-document-prc-api-config">
+		<flow-ref doc:name="health-check-sub-flow" doc:id="47732ac9-979d-4342-8fcc-945888c32684" name="health-check-sub-flow" />
+		<error-handler ref="common-exception-handler" />
+    </flow>
+    <flow name="post:\document\(customerName)\inbound\(transactionType):text\plain:mc-document-prc-api-config">
+		<flow-ref doc:name="edi-document-processing-sub-flow" doc:id="b145d251-9346-43a3-a13f-a604ed9d229e" name="edi-document-processing-sub-flow" />
+		<error-handler ref="common-exception-handler" />
+    </flow>
+</mule>

@@ -1,0 +1,7 @@
+{
+  "appName": "API",
+  "errorCode": "401",
+  "errorMessage" : "The client request has not been completed because it lacks valid authentication credentials for the requested resource.",
+  "correlationId": "dd960082-abbf-47c2-8c65-f18eeb35848b",
+  "timeStamp": "2019-09-30T15:27:49.274Z"
+}

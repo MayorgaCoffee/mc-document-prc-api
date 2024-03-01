@@ -1,0 +1,7 @@
+{
+  "appName": "API",
+  "errorCode": "400",
+  "errorMessage" : "x-correlation-id not present",
+  "correlationId": "dd960082-abbf-47c2-8c65-f18eeb35848b",
+  "timeStamp": "2019-09-30T15:27:49.274Z"
+}

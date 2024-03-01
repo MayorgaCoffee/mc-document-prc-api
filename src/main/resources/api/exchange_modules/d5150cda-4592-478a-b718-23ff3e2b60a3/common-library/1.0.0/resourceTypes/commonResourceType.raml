@@ -1,0 +1,57 @@
+#%RAML 1.0 ResourceType
+
+get?:
+  description: <<getDescription>>
+  responses:
+    200:
+      body:
+        application/json:
+          type: <<getResponseType>>
+        application/xml:
+          type: <<getResponseType>>
+
+post?:
+  description: <<postDescription>>
+  body:
+    application/json:
+      type: <<postRequestType>>
+    application/xml:
+      type: <<postRequestType>> 
+  responses:
+    200:
+      description: <<resource>> added successfully
+      body:
+        application/json:
+          type: <<postResponseType>>
+        application/xml:
+          type: <<postResponseType>>
+
+patch?:
+  description: <<patchDescription>>
+  body:
+    application/json:
+      type: <<patchRequestType>>
+    application/xml:
+      type: <<patchRequestType>>
+  responses:
+    200:
+      body:
+        application/json:
+          type: <<patchResponseType>>
+        application/xml:
+          type: <<patchResponseType>>
+
+delete?:
+  description: <<deleteDescription>>
+  body:
+    application/json:
+      type: <<deleteRequestType>>
+    application/xml:
+      type: <<deleteRequestType>>
+  responses:
+    200:
+      body:
+        application/json:
+          type: <<deleteResponseType>>
+        application/xml:
+          type: <<deleteResponseType>>

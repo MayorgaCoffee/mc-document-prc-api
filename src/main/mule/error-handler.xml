@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="common-exception-handler"
+		doc:id="22b741c7-91e9-4344-9826-9432f379beb1">
+		<on-error-propagate type="CONNECTIVITY"
+			logException="true" enableNotifications="true">
+			<set-variable variableName="httpStatus" value="504"
+				doc:name="httpStatus-504" />
+			<flow-ref name="common-default-error-payload-flow" doc:name="common-default-error-payload-flow" />
+		</on-error-propagate>
+		<on-error-propagate type="SECURITY"
+			logException="true" enableNotifications="true">
+			<choice>
+				<when
+					expression="#[error.errorType.identifier == 'UNAUTHORIZED']">
+					<set-variable variableName="httpStatus" value="401"
+						doc:name="httpStatus-401" />
+				</when>
+				<otherwise>
+					<set-variable variableName="httpStatus" value="403"
+						doc:name="httpStatus-403" />
+				</otherwise>
+			</choice>
+			<flow-ref name="common-default-error-payload-flow" doc:name="common-default-error-payload-flow" />
+		</on-error-propagate>
+		<on-error-propagate type="ANY" logException="true"
+			enableNotifications="true">
+			<choice>
+				<when expression="#[(error.errorType.namespace == 'APIKIT') or (error.errorType.namespace == 'HTTP')]">
+					<choice>
+						<when
+							expression="#[error.errorType.identifier == 'BAD_REQUEST']">
+							<set-variable variableName="httpStatus" value="400"
+								doc:name="httpStatus-400" />
+						</when>
+						<when
+							expression="#[error.errorType.identifier == 'NOT_FOUND']">
+							<set-variable variableName="httpStatus" value="404"
+								doc:name="httpStatus-404" />
+						</when>
+						<when
+							expression="#[error.errorType.identifier == 'METHOD_NOT_ALLOWED']">
+							<set-variable variableName="httpStatus" value="405"
+								doc:name="httpStatus-405" />
+						</when>
+						<when
+							expression="#[error.errorType.identifier == 'NOT_ACCEPTABLE']">
+							<set-variable variableName="httpStatus" value="406"
+								doc:name="httpStatus-406" />
+						</when>
+						<when
+							expression="#[error.errorType.identifier == 'UNSUPPORTED_MEDIA_TYPE']">
+							<set-variable variableName="httpStatus" value="415"
+								doc:name="httpStatus-415" />
+						</when>
+						<when
+							expression="#[error.errorType.identifier == 'NOT_IMPLEMENTED']">
+							<set-variable variableName="httpStatus" value="501"
+								doc:name="httpStatus-501" />
+						</when>
+					</choice>
+				</when>
+				<otherwise>
+					<set-variable variableName="httpStatus"
+						value="#[if(vars.httpStatus != null) vars.httpStatus else 500]"
+						doc:name="httpStatus-500" />
+				</otherwise>
+			</choice>
+			<flow-ref name="common-default-error-payload-flow" doc:name="common-default-error-payload-flow" />
+		</on-error-propagate>
+	</error-handler>
+	<sub-flow name="common-default-error-payload-flow">
+		<ee:transform doc:name="Transform Error Message"
+			doc:id="9c7c5be3-8e43-47ba-b3e5-c3d21ba96977">
+			<ee:message>
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"appName": app.name,
+	"errorCode": vars.httpStatus,
+	"errorMessage": error.errorMessage.payload.message,
+	"correlationId": if ( vars.correlationId != null ) vars.correlationId else correlationId,
+	"timeStamp": if ( vars.timeStamp != null ) vars.timeStamp else now(),
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<logger level="ERROR" doc:name="Error Message" doc:id="be4deedd-ab4c-4e5d-a148-cd76f19b9c29" message="#[payload]" />
+	</sub-flow>
+	</mule>

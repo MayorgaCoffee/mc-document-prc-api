@@ -1,0 +1,11 @@
+#%RAML 1.0 SecurityScheme
+
+type: x-auth-jwt
+description: JSON Web Token (JWT) authentication
+describedBy:
+  headers:
+    Authorization:
+      description: JWT token for authentication
+      type: string
+      example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ii1LSTeG1lWm9YcWJIWkdldyJ9"
+      required: true
