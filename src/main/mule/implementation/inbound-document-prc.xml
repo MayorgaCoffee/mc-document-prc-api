@@ -59,19 +59,6 @@ output application/java
 		<ee:dynamic-evaluate doc:name="NetSuite Payload" doc:id="fdb152d2-bbae-4830-a990-8f4790ed32ba" expression="#[vars.dwlFilePath]">
 			<ee:parameters >#[{payload : payload}]</ee:parameters>
 		</ee:dynamic-evaluate>
-		<ee:transform doc:name="Overriding Payload" doc:id="3443bdfc-f102-4063-80bf-1a0223a9c35c">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-import * from dw::core::Strings
-fun makeItUnique (commonKeys) = (commonKeys mapObject ((value, key, index) -> ("$(ordinalize(index+1)) $(key)"): value))
-output application/json
----
-payload[0]  update {
-    case customFields at .customFieldList -> makeItUnique(customFields)
-    case customFieldsLine at .itemList.item.item.customFieldList -> makeItUnique(customFieldsLine)
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<http:request method="POST" doc:name="POST : /transaction" doc:id="d176151f-e814-4017-993a-ad5257c21dd0" sendCorrelationId="ALWAYS" config-ref="mc-exp-api-request-config" path="${sys.path}" outputMimeType="application/json">
 			<http:headers ><![CDATA[#[output application/java
 ---

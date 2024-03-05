@@ -1,196 +1,81 @@
 %dw 2.0
-output application/json  
+var shippingAddress = flatten(payload.TransactionSets.v004010."850".Heading."310_N1_Loop")[0]
+ns ns0 urn:messages.platform.webservices.netsuite.com
+ns ns01 urn:sales.transactions.webservices.netsuite.com
+ns ns02 urn:common.platform.webservices.netsuite.com
+ns ns03 urn:core.platform.webservices.netsuite.com
+output application/xml
 ---
-payload.TransactionSets.v004010."850" map ((value, index) -> {
-  tranDate: value.Heading."020_BEG".BEG05,
-  otherRefNum: value.Heading."020_BEG".BEG03 default "",
-  shippingAddress: ((value.Heading."310_N1_Loop") map {
-    country: $."340_N4".N404[0] default "",
-    addressee: $."310_N1".N102 default "",
-    addr1: $."330_N3".N301[0] default "",
-    city: $."340_N4".N401[0] default "",
-    state: $."340_N4".N402[0] default "",
-    zip: $."340_N4".N403[0] default "",
-    addrPhone: $."360_PER".PER04[0] default ""
-  }),
-  shipDate:  (value.Heading."150_DTM" filter (item) -> item.DTM01 == "004")."DTM02"[0] default "",
-  endDate:  (value.Heading."150_DTM" filter (item) -> item.DTM01 == "006")."DTM02"[0] default "",
-  shipMethod: value.Heading."240_TD5".TD505[0]  default  '',
-  department: {
-    "@internalId": null,
-    "__text": null
-  },
-  itemList: {
-    item: (value.Detail mapObject ((value, index) -> {
-      item: {
-        quantity: value."010_PO1".PO102[0] default '',
-        units: {
-          name: value."010_PO1".PO103[0] default ''
+{
+  ns0#add: {
+    ns0#record @('xmlns:ns01': ns01, xsi#'type': 'ns01:SalesOrder'): (payload.TransactionSets.v004010."850") map ((value, index) -> {
+      ns01#entity @(internalId: "1328"): "CostcoDS",
+      ns01#tranDate: value.Heading."020_BEG".BEG05 as DateTime,
+      ns01#otherRefNum: value.Heading."020_BEG".BEG03 default "",
+      ns01#shippingAddress: {
+        ns02#country: if((shippingAddress."340_N4".N404[0] default "") ~= "US") "_unitedStates" else "",
+        ns02#addressee: shippingAddress."310_N1".N102 default "",
+        ns02#addr1: shippingAddress."330_N3".N301 default "",
+        ns02#city: shippingAddress."340_N4".N401 default "",
+        ns02#state: shippingAddress."340_N4".N402 default "",
+        ns02#zip: shippingAddress."340_N4".N403 default "",
+        ns02#addrPhone: shippingAddress."360_PER".PER04[0] default ""
+      },
+      ns01#shipDate: (value.Heading."150_DTM" filter (item) -> item.DTM01 == "004")."DTM02"[0] as DateTime default "",
+      ns01#endDate: (value.Heading."150_DTM" filter (item) -> item.DTM01 == "006")."DTM02"[0] as DateTime default "",
+      ns01#shipMethod @(internalId: "16"): value.Heading."240_TD5".TD505[0] default '',
+      ns01#department @(internalId: "26"): {},
+      ns01#itemList: {
+        ns01#item: (value.Detail mapObject ((value, index) -> {
+        	ns01#item @(internalId: "1483"): {},
+            ns01#quantity: value."010_PO1".PO102[0] as Number,
+            ns01#units: {
+              name: value."010_PO1".PO103[0] default ''
+            },
+            ns01#rate: value."010_PO1".PO104[0] default "",
+            ns01#line: value."010_PO1".PO101[0] as Number default "",
+            ns01#customFieldList: {
+              ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_item_sku"): {
+               ns03#value: (value."010_PO1".PO107[0] default "")
+              },
+              ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_vendor_part_number"): {
+               ns03#value: value."010_PO1".PO109[0] default ""
+              },
+              ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_edi_prod_desc"): {
+               ns03#value: value."050_PID_Loop"[0]."050_PID".PID05[0] default ""
+              }
+            }
+          
+        }))
+      },
+      ns01#customFieldList: {
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_trans_set_purpose_code"): {
+         ns03#value: (value.Heading."020_BEG".BEG01 default "")
         },
-        rate: value."010_PO1".PO104[0] default "",
-        line: value."010_PO1".PO101[0] default "",
-        customFieldList: {
-          customField: {
-            "@type": "StringCustomFieldRef",
-            "@scriptId": "custcol_cleo_item_sku",
-            value: (value."010_PO1".PO107[0] default "")
-          },
-          customField: {
-            "@type": "StringCustomFieldRef",
-            "@scriptId": "custcol_cleo_vendor_part_number",
-            value: value."010_PO1".PO109[0] default ""
-          },
-          customField: {
-            "@type": "StringCustomFieldRef",
-            "@scriptId": "custcol_cleo_edi_prod_desc",
-            value: value."050_PID_Loop"[0]."050_PID".PID05[0] default ""
-          }
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_po_type_code"): {
+         ns03#value: value.Heading."020_BEG".BEG02 default ""
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_internal_vendor_number"): {
+         ns03#value: (value.Heading."050_REF" filter (item) -> item.REF01 == "IA").REF02[0] default ""
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_cust_order_no"): {
+         ns03#value: (value.Heading."050_REF" filter (item) -> item.REF01 == "CO").REF02[0] default ""
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_carrier_routing"): {
+         ns03#value: (value.Heading."240_TD5".TD505[0] default "")
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbodyhj_tc_udf2"): {
+         ns03#value: (value.Heading."240_TD5".TD505[0] default "")
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_legal_notes"): {
+          ns03#value: (value.Heading."295_N9_Loop"."295_N9".N902[0] default "")
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_st_locationcodequalifier"): {
+          ns03#value: value.Heading."310_N1_Loop"."310_N1".N103[0] default ""
+        },
+        ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custbody_cleo_st_addresslocationnumber"): {
+          ns03#value: value.Heading."310_N1_Loop"."310_N1".N104[0] default ""
         }
       }
-    }))
-  },
-  customFieldList: {
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_trans_set_purpose_code",
-      value: (value.Heading."020_BEG".BEG01 default "")
-    },
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_po_type_code",
-      value: value.Heading."020_BEG".BEG02 default ""
-    },
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_internal_vendor_number",
-      value: (value.Heading."050_REF" filter (item) -> item.REF01 == "IA").REF02[0] default ""
-    },
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_cust_order_no",
-      value: (value.Heading."050_REF" filter (item) -> item.REF01 == "CO").REF02[0] default ""
-    },
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_carrier_routing",
-      value: (value.Heading."240_TD5".TD505[0] default "")
-    },
-    customField: {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbodyhj_tc_udf2",
-      value: (value.Heading."240_TD5".TD505[0] default "")
-    },
-    "customField": {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_legal_notes",
-      "value": (value.Heading."295_N9_Loop"."295_N9".N902[0] default "")
-    },
-    "customField": {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_st_locationcodequalifier",
-      "value": value.Heading."310_N1_Loop"."310_N1".N103[0] default ""
-    },
-    "customField": {
-      "@type": "StringCustomFieldRef",
-      "@scriptId": "custbody_cleo_st_addresslocationnumber",
-      "value": value.Heading."310_N1_Loop"."310_N1".N104[0] default ""
-    },
-  }
-})
-// value.Detail  
-// 	record: {
-// 		"@type": null,
-// 		tranDate: value.Heading."020_BEG".BEG05 as String default "",
-// 		otherRefNum: value.Heading."020_BEG".BEG03[0] default "",
-// 		shippingAddress: {
-// 			country: value.Heading."310_N1_Loop"."340_N4".N404 default "",
-// 			addressee: value.Heading."310_N1_Loop"."340_N4".N403 default "",
-// 			addr1: value.Heading."310_N1_Loop"."330_N3".N301 default "",
-// 			city: value.Heading."310_N1_Loop"."340_N4".N401 default "",
-// 			state: value.Heading."310_N1_Loop"."340_N4".N402 default "",
-// 			zip: value.Heading."310_N1_Loop"."340_N4".N403 default ""
-// 		},
-// 		shipMethod: {
-// 			"@internalId": null,
-// 			"__text": null
-// 		},
-// 		department: {
-// 			"@internalId": null,
-// 			"__text": null
-// 		},
-// 		itemList: {
-// 			item: {
-// 				quantity: value.Detail."010_PO1_Loop"."010_PO1".PO102 as String default "",
-// 				units: {
-// 					name: value.Detail."010_PO1_Loop"."010_PO1".PO103 default ""
-// 				},
-// 				rate: value.Detail."010_PO1_Loop"."010_PO1".PO104 as String default "",
-// 				line: value.Detail."010_PO1_Loop"."010_PO1".PO101 default "",
-// 				customFieldList: {
-// 					customField: {
-// 						"@type": "StringCustomFieldRef",
-// 						"@scriptId": "custcol_cleo_item_sku",
-// 						value: (value.Detail."010_PO1_Loop"."010_PO1".PO107 default "")
-// 					},
-// 					customField: {
-// 						"@type": "StringCustomFieldRef",
-// 						"@scriptId": "custcol_cleo_vendor_part_number",
-// 						value: value.Detail."010_PO1_Loop"."010_PO1".PO109 default ""
-// 					},
-// 					customField: {
-// 						"@type": "StringCustomFieldRef",
-// 						"@scriptId": "custcol_cleo_edi_prod_desc",
-// 						value: value.Detail."010_PO1_Loop"."050_PID_Loop"."050_PID".PID05 default ""
-// 					}
-// 				}
-// 			}
-// 		},
-// 		customFieldList: {
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_trans_set_purpose_code",
-// 				value: (value.Heading."020_BEG".BEG01 default "")
-// 			},
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_po_type_code",
-// 				value: value.Heading."020_BEG".BEG02 default ""
-// 			},
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_internal_vendor_number",
-// 				value: (value.Heading."050_REF".REF02 default "")
-// 			},
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_cust_order_no",
-// 				value: (value.Heading."050_REF".REF02 default "")
-// 			},
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_carrier_routing",
-// 				value: (value.Heading."240_TD5".TD505 default "")
-// 			},
-// 			customField: {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbodyhj_tc_udf2",
-// 				value: (value.Detail."010_PO1_Loop"."250_TD5".TD505 default "")
-// 			},
-// 			"customField": {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_legal_notes",
-// 				"value": (value.Heading."295_N9_Loop"."295_N9".N902 default "")
-// 			},
-// 			"customField": {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_st_locationcodequalifier",
-// 				"value": value.Heading."310_N1_Loop"."310_N1".N103 default ""
-// 			},
-// 			"customField": {
-// 				"@type": "StringCustomFieldRef",
-// 				"@scriptId": "custbody_cleo_st_addresslocationnumber",
-// 				"value": value.Heading."310_N1_Loop"."310_N1".N104 default ""
-// 			}
-// 		}
-// 	}
-// }
+    })
+  }}
