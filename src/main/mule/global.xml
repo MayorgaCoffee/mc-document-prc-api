@@ -62,9 +62,9 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 	<http:request-config
 		name="mc-sys-api-request-config" doc:name="HTTP Request configuration"
 		doc:id="b077e33b-9565-4989-84b8-aff93dfea859"
-		basePath="${exp.basePath}">
-		<http:request-connection host="${exp.host}"
-			port="${exp.port}" protocol="${exp.protocol}" />
+		basePath="${sys.basePath}">
+		<http:request-connection host="${sys.host}"
+			port="${sys.port}" protocol="${sys.protocol}" />
 	</http:request-config>
 	<http:request-config
 		name="mc-exp-api-request-config" doc:name="HTTP Request configuration"

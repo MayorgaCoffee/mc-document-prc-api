@@ -59,7 +59,7 @@ output application/java
 		<ee:dynamic-evaluate doc:name="NetSuite Payload" doc:id="fdb152d2-bbae-4830-a990-8f4790ed32ba" expression="#[vars.dwlFilePath]">
 			<ee:parameters >#[{payload : payload}]</ee:parameters>
 		</ee:dynamic-evaluate>
-		<http:request method="POST" doc:name="POST : /transaction" doc:id="d176151f-e814-4017-993a-ad5257c21dd0" sendCorrelationId="ALWAYS" config-ref="mc-exp-api-request-config" path="${sys.path}" outputMimeType="application/json">
+		<http:request method="POST" doc:name="POST : /transaction" doc:id="d176151f-e814-4017-993a-ad5257c21dd0" sendCorrelationId="ALWAYS" config-ref="mc-sys-api-request-config" path="${sys.path}" outputMimeType="application/json">
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
