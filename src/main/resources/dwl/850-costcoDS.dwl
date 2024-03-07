@@ -23,29 +23,30 @@ output application/xml
       },
       ns01#shipDate: (value.Heading."150_DTM" filter (item) -> item.DTM01 == "004")."DTM02"[0] as DateTime default "",
       ns01#endDate: (value.Heading."150_DTM" filter (item) -> item.DTM01 == "006")."DTM02"[0] as DateTime default "",
-      ns01#shipMethod @(internalId: "16"): value.Heading."240_TD5".TD505[0] default '',
+      ns01#shipMethod @(internalId: (p('$(value.Heading."240_TD5".TD505[0])'))): value.Heading."240_TD5".TD505[0] default '',
       ns01#department @(internalId: "26"): {},
-      ns01#itemList: {
-        ns01#item: (value.Detail mapObject ((value, index) -> {
-        	ns01#item @(internalId: "1483"): {},
-            ns01#quantity: value."010_PO1".PO102[0] as Number,
+            ns01#itemList: {
+        (value.Detail."010_PO1_Loop" map ((value, index) -> {
+          ns01#item: {
+            ns01#item @(internalId: p('$(value."010_PO1".PO109)')): {},
+            ns01#quantity: value."010_PO1".PO102 as Number,
             ns01#units: {
-              name: value."010_PO1".PO103[0] default ''
+              name: value."010_PO1".PO103 default ''
             },
-            ns01#rate: value."010_PO1".PO104[0] default "",
-            ns01#line: value."010_PO1".PO101[0] as Number default "",
+            ns01#rate: value."010_PO1".PO104 default "",
+            ns01#line: value."010_PO1".PO101 as Number default "",
             ns01#customFieldList: {
               ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_item_sku"): {
-               ns03#value: (value."010_PO1".PO107[0] default "")
+               ns03#value: (value."010_PO1".PO109 default "")
               },
               ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_vendor_part_number"): {
-               ns03#value: value."010_PO1".PO109[0] default ""
+               ns03#value: value."010_PO1".PO107 default ""
               },
               ns03#customField @("xsi:type": "ns03:StringCustomFieldRef", "scriptId": "custcol_cleo_edi_prod_desc"): {
-               ns03#value: value."050_PID_Loop"[0]."050_PID".PID05[0] default ""
+               ns03#value: value."050_PID_Loop"[0]."050_PID".PID05 default ""
               }
             }
-          
+          }
         }))
       },
       ns01#customFieldList: {

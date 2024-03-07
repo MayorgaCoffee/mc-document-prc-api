@@ -30,3 +30,23 @@ exp:
    host: "mc-customer-exp-api-dev.us-e2.cloudhub.io"
    port: "443"
    path: ""
+   
+#costcoDs Netsuite IDs
+
+#Vendor Items
+"1589882": "1483"
+"1635933": "1584"
+"1636379": "1585"
+"1636419": "928"
+3C3OCH: "1120"
+9C2O17: "1349"
+9C2O4: "927"
+
+#trading partners
+UPSN_SE : "1330"
+UPSN_PM : "1672"
+UPSN_CG : "16"
+UPSN_3D : "15"
+UPSN_SC : "1330"
+UPSN_ND : "1742"
+UPSN_GND : "15"
