@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto"
+	xmlns:x12="http://www.mulesoft.org/schema/mule/x12"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/x12 http://www.mulesoft.org/schema/mule/x12/current/mule-x12.xsd
+http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	
+	<flow name="outbound-document-prcFlow"
+		doc:id="49c25e4c-6d89-4d88-86be-910b6a7a42e3">
+		<scheduler doc:name="Every 60mins"
+			doc:id="7622cacf-7c20-4df0-9700-fe8e91e17b7c">
+			<scheduling-strategy>
+				<fixed-frequency frequency="1" timeUnit="HOURS" />
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="START" doc:id="74827502-e672-4b21-913e-5863dbf3a900" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "Start of flow : " ++ flow.name,&#10;    message: "Flow for EDI document processing",&#10;    correlationId: correlationId&#10;}]' />
+		<os:retrieve doc:name="Store recordType"
+			doc:id="7b6d7377-5485-4f4a-892c-074e6c6c9879" key="recordType"
+			objectStore="Object_store_recordType" target="recordType">
+			<os:default-value><![CDATA[#["ItemFulfillment"]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Netsuite payload" doc:id="3ac7668c-cb03-41d2-acd9-8f93d88d3ac4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 urn:messages.platform.webservices.netsuite.com
+ns ns01 urn:common.platform.webservices.netsuite.com
+ns ns02 urn:core.platform.webservices.netsuite.com
+---
+{
+	ns0#search: {
+		ns0#searchRecord @("xmlns:ns01": ns01, xsi#"type": "ns01:TransactionSearchBasic"): {
+			ns01#lastModifiedDate @(operator: "within"): {
+				ns02#searchValue: now() as DateTime,
+				ns02#searchValue2: (now() as DateTime) - |PT1H|
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="GET sys: /transaction"
+			doc:id="7b78e1c5-63fc-48ff-97ea-641ebb3853e4"
+			config-ref="mc-sys-api-request-config" path="${sys.path}"
+			sendCorrelationId="ALWAYS" outputMimeType="application/json">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	recordType : vars.recordType,
+	operation : "get"
+}]]]></http:headers>
+		</http:request>
+		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="41f12c2b-9c6b-49e8-84ed-36b267668d93" path="D:\mayorga Cofee development\schemas\856_costcoDS_xml_example.xml"/> [STUDIO] -->
+		<ee:transform doc:name="payload: XML to JSON &amp; var : customerName"
+			doc:id="8406814b-3546-4cfa-8347-9ed49fe9f724">
+			<ee:message>
+				<ee:set-payload ><![CDATA[%dw 2.0
+fun metaDataDe (customFields) = (customFields pluck ($$.@scriptId):($.value) ) reduce ((item, accumulator={}) -> item ++ accumulator )
+
+output application/json writeAttributes=true
+---
+
+payload.getResponse.readResponse.record update {
+    case customFields at .customFieldList -> metaDataDe(customFields)
+    case customFieldsLine at .itemList.item.customFieldList -> metaDataDe(customFieldsLine)
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="customerName" ><![CDATA[%dw 2.0
+output application/json
+var internalId = payload.getResponse.readResponse.record.entity.@internalId
+---
+if (internalId ~= "1328") "costcoDS" else if (internalId ~= "1147") "costcoDepo" else if(internalId ~= "1146") "costcoCanada" else "Not a partner"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform
+			doc:name="var : dwlFilePath, recordType, operation"
+			doc:id="d1d5a2c2-e6e2-466b-ba54-c4f11a4e93f0">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dwlFilePath"><![CDATA[%dw 2.0
+output application/java
+var dwlFilePath = 'classpath://dwl/' ++ vars.recordType ++ "-" ++ vars.customerName ++ '.dwl'
+---
+readUrl(dwlFilePath, 'text/plain')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:dynamic-evaluate doc:name="EDI" doc:id="f6356d97-1439-4839-bd51-baf992ee9160" expression="#[vars.dwlFilePath]">
+			<ee:parameters >#[{payload : payload}]</ee:parameters>
+		</ee:dynamic-evaluate>
+		<x12:write doc:name="Validate EDI"
+			doc:id="ee61ab5f-6f7c-46f9-9dc7-7ae60d00fd49"
+			config-ref="X12_EDI_Config_write" />
+		<crypto:pgp-encrypt doc:name="EDI payload" doc:id="76736196-ec53-49a0-ac7e-ea59caa818bb" config-ref="crypto-pgp" keyId="Mule"/>
+		<http:request method="POST" doc:name="POST exp: /" doc:id="755f9750-aff7-4176-92c0-3a6f19986095" config-ref="mc-exp-api-request-config" path="${exp.path}" sendCorrelationId="ALWAYS" outputMimeType="application/json">
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="102534ef-b2a7-4bb6-b79d-957184fec440" />
+	</flow>
+</mule>
