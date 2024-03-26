@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 http://www.mulesoft.org/schema/mule/x12 http://www.mulesoft.org/schema/mule/x12/current/mule-x12.xsd
 http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
-	<os:object-store name="Object_store_recordType"
+	<os:object-store name="time-stamp"
 		doc:name="Object store" doc:id="70acf7c0-6fff-49a7-bcf7-632d16f01eed" />
 	<configuration doc:name="Configuration"
 		doc:id="da15166a-5d9d-4b77-a80d-4743c6e90e45"
@@ -102,5 +102,5 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 		value="61D47E58735FE36A" />
 	<x12:config name="X12_EDI_Config_write"
 		doc:name="X12 EDI Config"
-		doc:id="d7a9ae03-ec28-40d8-a436-0b13d17cf1c4" interchangeIdQualifierSelf="ZZ" interchangeIdSelf="NTORETAIL" groupIdSelf="NTORETAIL" interchangeIdQualifierPartner="01" interchangeIdPartner="MYTHICAL" groupIdPartner="MYTHICAL"/>
+		doc:id="d7a9ae03-ec28-40d8-a436-0b13d17cf1c4" interchangeIdQualifierSelf="${write.muleId}" interchangeIdSelf="${write.muleInterchangeId}" groupIdSelf="${write.muleCode}" interchangeIdQualifierPartner="#[vars.partnerDetails.partnerId]" interchangeIdPartner="#[vars.partnerDetails.interchangeId]" groupIdPartner="#[vars.partnerDetails.partnerAppCode]"/>
 </mule>

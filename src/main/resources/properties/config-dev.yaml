@@ -30,8 +30,33 @@ exp:
    host: "mc-customer-exp-api-dev.us-e2.cloudhub.io"
    port: "443"
    path: ""
-   
-#costcoDs Netsuite IDs
+
+#x12 config
+write:
+  muleId: "12"
+  muleInterchangeId: "2402523149"   
+  muleCode : "12"
+  
+  #partnerDetails
+  costcoDs:
+    interchangeId: "4253138601CH"
+    partnerId: "12"
+    partnerName: "costcoDS"
+    partnerAppCode: "4253138601CH"
+  costcoDepo:
+    interchangeId: "103391843"
+    partnerId: "01"
+    partnerName: "costcoDepo"
+    partnerAppCode: "103391843"
+  costcoCanada:
+    interchangeId: "COSCAN"
+    partnerId: "ZZ"
+    partnerName: "costcoCanada"
+    partnerAppCode: "COSTCOMERCHCAN"
+
+
+            
+#Costco DS Netsuite IDs
 
 #Vendor Items
 "1589882": "1483"
@@ -53,10 +78,9 @@ UPSN_GND : "15"
 
 
 
-#costcoUSA Netsusite IDs
+#Costco USA Netsusite IDs
 
 #Vendor Items
-
 "NE" : "13" 
 "SE" : "28" 
 "MW" : "14" 
@@ -64,7 +88,6 @@ UPSN_GND : "15"
 "EC" : "16"
 
 #department
-
 "112213" : "887"
 "1283267" : "1598"
 "1309922" : "724"

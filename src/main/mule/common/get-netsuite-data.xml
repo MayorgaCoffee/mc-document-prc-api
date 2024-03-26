@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="get-netsuite-data-sub-flow" doc:id="af4e3f73-689a-418b-a656-37b824c0f81e" >
+		<http:request method="POST" doc:name="POST sys: /transaction" doc:id="a91a9ba1-af2e-47e1-929f-28513f5ec95b" config-ref="mc-sys-api-request-config" path="${sys.path}" sendCorrelationId="ALWAYS" outputMimeType="application/xml" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	recordType : "TransactionSearchBasic",
+	operation : "get"
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+</mule>

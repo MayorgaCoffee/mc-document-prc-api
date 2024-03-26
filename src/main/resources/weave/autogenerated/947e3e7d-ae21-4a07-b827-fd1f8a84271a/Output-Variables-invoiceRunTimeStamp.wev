@@ -1,0 +1,5 @@
+%dw 2.0
+
+type auto_947e3e7d_ae21_4a07_b827_fd1f8a84271a_Output_Variables_invoiceRunTimeStamp = {|  |} {"typeAlias": "Serializable",
+"typeId": "java.io.Serializable"}
+

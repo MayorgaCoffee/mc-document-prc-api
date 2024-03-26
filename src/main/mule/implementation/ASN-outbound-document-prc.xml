@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto"
+	xmlns:x12="http://www.mulesoft.org/schema/mule/x12"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/x12 http://www.mulesoft.org/schema/mule/x12/current/mule-x12.xsd
+http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule/netsuite/current/mule-netsuite.xsd">
+	
+	<flow name="asn-document-prc-flow"
+		doc:id="49c25e4c-6d89-4d88-86be-910b6a7a42e3">
+		<scheduler doc:name="Every 60mins"
+			doc:id="7622cacf-7c20-4df0-9700-fe8e91e17b7c">
+			<scheduling-strategy>
+				<fixed-frequency frequency="1" timeUnit="HOURS" />
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="START" doc:id="74827502-e672-4b21-913e-5863dbf3a900" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "Start of flow : " ++ flow.name,&#10;    message: "Flow for EDI document processing",&#10;    correlationId: correlationId&#10;}]' />
+		<os:retrieve doc:name="Store asnRunTimeStamp"
+			doc:id="7b6d7377-5485-4f4a-892c-074e6c6c9879" key="asnRunTimeStamp"
+			objectStore="time-stamp" target="asnRunTimeStamp">
+			<os:default-value><![CDATA[#[now() - |PT1H|]]]></os:default-value>
+		</os:retrieve>
+		<set-variable value='#["ItemFulfillment"]' doc:name="var : recordType" doc:id="e86c51f9-462a-4f48-8994-57f15e406527" variableName="recordType"/>
+		<set-variable value="#[now()]" doc:name="var : currentTimeStamp" doc:id="70919385-b6b2-4a5a-aa94-c84c785a89af" variableName="currentRunTimeStamp"/>
+		<flow-ref doc:name="asn-outbound-document-prc-sub-flow" doc:id="be8a7fa9-0ff1-4eec-85d9-7f126e40348e" name="asn-outbound-document-prc-sub-flow" />
+		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="41f12c2b-9c6b-49e8-84ed-36b267668d93" path="D:\mayorga Cofee development\schemas\856_costcoDS_xml_example.xml" /> [STUDIO] -->
+		<os:store doc:name="Store" doc:id="307226f2-ceff-4fb3-8f78-f6dc3ab8c1c6" key="asnRunTimeStamp" objectStore="time-stamp">
+			<os:value ><![CDATA[#[vars.currentRunTimeStamp]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="END" doc:id="d79cc10d-4864-43be-88e3-ad67d9ebded3" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "End of flow : " ++ flow.name,&#10;    message: "Flow for EDI outbound document processing Ended",&#10;    correlationId: correlationId&#10;}]' />
+	</flow>
+	<sub-flow name="asn-outbound-document-prc-sub-flow" doc:id="947e3e7d-ae21-4a07-b827-fd1f8a84271a" >
+		<logger level="INFO" doc:name="START" doc:id="79fbb515-4aaa-494c-96d8-c4645ff8d98a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "Start of flow : " ++ flow.name,&#10;    message: "sub flow for asn outbound document processing",&#10;    correlationId: correlationId&#10;}]' />
+		<set-variable value='#[{&#10;	"recordType": vars.recordType,&#10;	"asnRunTimeStamp": vars.asnRunTimeStamp,&#10;	"currentRunTimeStamp" : vars.currentRunTimeStamp&#10;}]' doc:name="var : transactionParameters" doc:id="a8e70b1e-131f-49e1-8856-d759b7f258e0" variableName="transactionParameters"/>
+		<ee:transform doc:name="Netsuite payload" doc:id="3ac7668c-cb03-41d2-acd9-8f93d88d3ac4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 urn:messages.platform.webservices.netsuite.com
+ns ns01 urn:common.platform.webservices.netsuite.com
+ns ns02 urn:core.platform.webservices.netsuite.com
+---
+{
+    ns0#search: {
+        ns0#searchRecord @("xmlns:ns01": ns01, xsi#"type": "ns01:TransactionSearchBasic"): {
+            ns01#lastModifiedDate @(operator: "within"): {
+                ns02#searchValue: vars.asnRunTimeStamp as DateTime,
+                ns02#searchValue2: vars.currentRunTimeStamp as DateTime
+            },
+            ns01#recordType @(operator: "is"): {
+                ns02#searchValue: vars.recordType
+            }
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="get-netsuite-data-sub-flow" doc:id="873275f8-bb50-4abc-b6e1-73a0acf3ac4b" name="get-netsuite-data-sub-flow"/>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="b20cbb8d-c80e-4222-87ae-dea8638a1a9c" collection="#[payload.resultant]">
+			<ee:transform doc:name="payload: XML to JSON &amp; var : partnerDetails" doc:id="8406814b-3546-4cfa-8347-9ed49fe9f724">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+fun metaDataDe (customFields) = (customFields pluck ($$.@scriptId):($.value) ) reduce ((item, accumulator={}) -> item ++ accumulator )
+
+output application/json writeAttributes=true
+---
+
+payload.result.payload.record update {
+    case customFields at .customFieldList -> metaDataDe(customFields)
+    case customFieldsLine at .itemList.item.customFieldList -> metaDataDe(customFieldsLine)
+}
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="partnerDetails"><![CDATA[%dw 2.0
+var internalId = payload.result.payload.record.entity.@internalId
+output application/json  
+---
+if (internalId ~= "1328")
+  {
+      interchangeId: p('write.costcoDs.interchangeId'),
+      partnerId: p('write.costcoDs.partnerId'),
+      partnerName: p('write.costcoDs.partnerName'),
+      partnerAppCode : p('write.costcoDs.partnerAppCode')
+  }
+else if (internalId ~= "1147")
+    {
+      interchangeId: p('write.costcoDepo.interchangeId'),
+      partnerId: p('write.costcoDepo.partnerId'),
+      partnerName: p('write.costcoDepo.partnerName'),
+      partnerAppCode : p('write.costcoDepo.partnerAppCode')
+  }
+else if (internalId ~= "1146")
+     {
+      interchangeId: p('write.costcoCanada.interchangeId'),
+      partnerId: p('write.costcoCanada.partnerId'),
+      partnerName: p('write.costcoCanada.partnerName'),
+      partnerAppCode : p('write.costcoCanada.partnerAppCode')
+  }
+else
+  "Not a partner"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			<ee:transform doc:name="var : dwlFilePath" doc:id="d1d5a2c2-e6e2-466b-ba54-c4f11a4e93f0">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dwlFilePath"><![CDATA[%dw 2.0
+output application/java
+var dwlFilePath = 'classpath://dwl/' ++ vars.recordType ++ "-" ++ vars.partnerDetails.partnerName ++ '.dwl'
+---
+readUrl(dwlFilePath, 'text/plain')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			<ee:dynamic-evaluate doc:name="EDI" doc:id="f6356d97-1439-4839-bd51-baf992ee9160" expression="#[vars.dwlFilePath]">
+			<ee:parameters>#[{payload : payload}]</ee:parameters>
+		</ee:dynamic-evaluate>
+			<x12:write doc:name="Validate EDI" doc:id="ee61ab5f-6f7c-46f9-9dc7-7ae60d00fd49" config-ref="X12_EDI_Config_write" />
+			<crypto:pgp-encrypt doc:name="EDI payload" doc:id="76736196-ec53-49a0-ac7e-ea59caa818bb" config-ref="crypto-pgp" keyId="Mule" />
+			<http:request method="POST" doc:name="POST exp: /" doc:id="755f9750-aff7-4176-92c0-3a6f19986095" config-ref="mc-exp-api-request-config" path="${exp.path}" sendCorrelationId="ALWAYS" outputMimeType="application/json">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	documentType : "856",
+	customerName : vars.partnerDetails.partnerName
+}]]]></http:headers>
+		</http:request>
+		</parallel-foreach>
+		<logger level="INFO" doc:name="END" doc:id="9c8c3227-ba01-416f-ad1d-9c7358169536" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "End of flow : " ++ flow.name,&#10;    message: "sub flow for asn outbound document processing",&#10;    correlationId: correlationId&#10;}]' />
+	</sub-flow>
+</mule>

@@ -1,0 +1,18 @@
+%dw 2.0
+
+type auto_947e3e7d_ae21_4a07_b827_fd1f8a84271a_Output_Payload = Array<org_mule_runtime_api_message_Message>
+type org_mule_runtime_api_message_Message = {|
+  payload: Any, 
+  attributes: org_mule_extension_http_api_HttpResponseAttributes
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+type org_mule_extension_http_api_HttpResponseAttributes = {|
+  statusCode: Number, 
+  reasonPhrase: String, 
+  headers: { _?: String }
+|} {"typeAlias": "HttpResponseAttributes",
+"typeId": "org.mule.extension.http.api.HttpResponseAttributes"}
+
+
+
+
+
