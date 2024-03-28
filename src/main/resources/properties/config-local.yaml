@@ -2,11 +2,95 @@
 
 # API Configuration
 api:
-  id: "0000"
   basePath: "/*"
+  version: "/v1"
   
+# Crypto Configuration 
+crypto:
+    publicKeyring: "certs/MayorgaCoffee_0x123B380C_public.gpg"
+    privateKeyring: "certs/MayorgaCoffee_0x123B380C_SECRET.gpg"
+ 
 # Certificate Configuration
 cert:
   type: "PKCS12"
   path: "certs/mayorgacert.p12"
-  alias: "mule-server"
+  alias: "mule-server"   
+  
+# MC NetSuite System API Configuration
+netsuite.sapi:
+   basePath: "/v1"
+   protocol: "HTTPS"
+   host: "mc-netsuite-sys-api-dev.us-e2.cloudhub.io"
+   port: ""
+   path: "/transaction"
+   
+# MC Customer Experience API Configuration
+customer.xapi:
+   basePath: "/v1"
+   protocol: "HTTPS"
+   host: "mc-customer-exp-api-dev.us-e2.cloudhub.io"
+   port: ""
+   path: "/document/outbound"
+
+# X12 Configuration
+edi.write:
+  muleId: "12"
+  muleInterchangeId: "2402523149"   
+  muleCode : "12"
+  
+  # Partner Details
+  costcoDs:
+    interchangeId: "4253138601CH"
+    partnerId: "12"
+    partnerName: "costcoDS"
+    partnerAppCode: "4253138601CH"
+  costcoDepo:
+    interchangeId: "103391843"
+    partnerId: "01"
+    partnerName: "costcoDepo"
+    partnerAppCode: "103391843"
+  costcoCanada:
+    interchangeId: "COSCAN"
+    partnerId: "ZZ"
+    partnerName: "costcoCanada"
+    partnerAppCode: "COSTCOMERCHCAN"
+                
+# Costco DS Netsuite IDs
+
+# Vendor Items
+"1589882": "1483"
+"1635933": "1584"
+"1636379": "1585"
+"1636419": "928"
+3C3OCH: "1120"
+9C2O17: "1349"
+9C2O4: "927"
+
+# Trading partners
+UPSN_SE : "1330"
+UPSN_PM : "1672"
+UPSN_CG : "16"
+UPSN_3D : "15"
+UPSN_SC : "1330"
+UPSN_ND : "1742"
+UPSN_GND : "15"
+
+# Costco USA Netsusite IDs
+
+# Vendor Items
+"NE" : "13" 
+"SE" : "28" 
+"MW" : "14" 
+"NW" : "7"
+"EC" : "16"
+
+# Department
+"112213" : "887"
+"1283267" : "1598"
+"1309922" : "724"
+"1424994" : "722"
+"1456576" : "884"
+"1506926" : "1459"
+"1587010" : "932"
+"459166" : "892"
+"779686" : "1527"

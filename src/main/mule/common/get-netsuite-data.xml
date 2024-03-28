@@ -5,7 +5,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<sub-flow name="get-netsuite-data-sub-flow" doc:id="af4e3f73-689a-418b-a656-37b824c0f81e" >
-		<http:request method="POST" doc:name="POST sys: /transaction" doc:id="a91a9ba1-af2e-47e1-929f-28513f5ec95b" config-ref="mc-sys-api-request-config" path="${sys.path}" sendCorrelationId="ALWAYS" outputMimeType="application/xml" >
+		<logger level="INFO" doc:name="Start " doc:id="4efcd6c2-5a01-403b-9a07-71fadda99900" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "Start of flow : " ++ flow.name,&#10;    message: "Get NetSuite data sub flow started",&#10;    correlationId: vars.correlationId&#10;}]'/>
+		<http:request method="POST" doc:name="POST sys: /transaction" doc:id="a91a9ba1-af2e-47e1-929f-28513f5ec95b" config-ref="mc-sys-api-request-configuration" path="${netsuite.sapi.path}" sendCorrelationId="ALWAYS" outputMimeType="application/xml" correlationId="#[vars.correlationId]">
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
@@ -13,5 +14,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	operation : "get"
 }]]]></http:headers>
 		</http:request>
+		<logger level="INFO" doc:name="End" doc:id="5dec00e5-63fb-4141-b472-4ef0810ef8d9" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "End of flow : " ++ flow.name,&#10;    message: "Get NetSuite data sub flow ended",&#10;    correlationId: vars.correlationId&#10;}]'/>
 	</sub-flow>
 </mule>

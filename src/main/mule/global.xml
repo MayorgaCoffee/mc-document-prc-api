@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+<mule
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
 	xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto"
 	xmlns:x12="http://www.mulesoft.org/schema/mule/x12"
 	xmlns:email="http://www.mulesoft.org/schema/mule/email"
@@ -12,7 +14,9 @@
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core 
 http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -24,67 +28,43 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 http://www.mulesoft.org/schema/mule/x12 http://www.mulesoft.org/schema/mule/x12/current/mule-x12.xsd
 http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
-	<os:object-store name="time-stamp"
-		doc:name="Object store" doc:id="70acf7c0-6fff-49a7-bcf7-632d16f01eed" />
-	<configuration doc:name="Configuration"
-		doc:id="da15166a-5d9d-4b77-a80d-4743c6e90e45"
-		defaultErrorHandler-ref="common-exception-handler" />
-	<configuration-properties
-		doc:name="Configuration properties"
-		doc:id="77d40699-0746-4cbf-a9b5-b9460b401894"
-		file="properties/config-${mule.env}.yaml" />
-	<secure-properties:config
-		name="Secure_Properties_Config" doc:name="Secure Properties Config"
-		doc:id="94934815-b2cd-47da-986a-dd87cc29345a"
-		file="properties/secure/config-${mule.env}-secure.yaml"
-		key="${mule.key}">
-	</secure-properties:config>
-	<configuration-properties
-		doc:name="Configuration properties"
-		doc:id="dd661869-d2fe-461c-85f2-4dd2c7f7243f"
-		file="properties\common\common.yaml"
-		doc:description="Common yaml&#10;" />
+	<apikit:config name="mc-document-prc-api-configuration"
+		api="resource::d5150cda-4592-478a-b718-23ff3e2b60a3:mc-document-prc-api:1.0.1:raml:zip:mc-document-prc-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus"/>
 	<http:listener-config
-		name="mc-customer-prc-api-listener-config"
+		name="mc-customer-prc-api-listener-configuration"
 		doc:name="HTTP Listener config"
-		doc:id="3fb17729-f9c7-455a-93e3-9f916aec4510">
+		doc:id="6de99907-bd6a-4301-af01-94bd8df38504">
 		<http:listener-connection
 			host="${https.host}" port="${https.port}"
 			readTimeout="${https.readTimeout}" protocol="HTTPS"
 			tlsContext="tls-context" />
 	</http:listener-config>
+	<http:request-config
+		name="mc-sys-api-request-configuration"
+		doc:name="HTTP Request configuration"
+		doc:id="0f9aab5a-ccf4-42db-9225-adaeec6d9b1e"
+		basePath="${netsuite.sapi.basePath}">
+		<http:request-connection host="${netsuite.sapi.host}"
+			port="${netsuite.sapi.port}" protocol="${netsuite.sapi.protocol}" />
+	</http:request-config>
+	<http:request-config
+		name="mc-exp-api-request-configuration"
+		doc:name="HTTP Request configuration"
+		doc:id="e517060f-1258-4a60-9855-3d02fca05b41"
+		basePath="${customer.xapi.basePath}">
+		<http:request-connection host="${customer.xapi.host}"
+			port="${customer.xapi.port}" protocol="${customer.xapi.protocol}" />
+	</http:request-config>
 	<tls:context name="tls-context" doc:name="TLS Context"
-		doc:id="48b1a222-f661-4b12-98e3-4147ddaab46f">
+		doc:id="ef6ddd58-a813-4e94-995d-24a3621046ce">
 		<tls:key-store type="${cert.type}" path="${cert.path}"
 			alias="${cert.alias}" keyPassword="${secure::cert.keyPassword}"
 			password="${secure::cert.password}" />
 	</tls:context>
-	<http:request-config
-		name="mc-sys-api-request-config" doc:name="HTTP Request configuration"
-		doc:id="b077e33b-9565-4989-84b8-aff93dfea859"
-		basePath="${sys.basePath}">
-		<http:request-connection host="${sys.host}"
-			port="${sys.port}" protocol="${sys.protocol}" />
-	</http:request-config>
-	<http:request-config
-		name="mc-exp-api-request-config" doc:name="HTTP Request configuration"
-		doc:id="6bdba37b-33cc-4f2a-9114-ac71ddfd3148"
-		basePath="${exp.basePath}">
-		<http:request-connection host="${exp.host}"
-			port="${exp.port}" protocol="${exp.protocol}" />
-	</http:request-config>
-	<x12:config name="X12_EDI_Config_read"
-		doc:name="X12 EDI Config"
-		doc:id="a05d0db7-c06c-48db-9704-04a01e8707cf"
-		requireUniqueInterchanges="false" requireUniqueTransactionSets="true">
-		<x12:schemas>
-			<x12:schema value="/x12/004010/850.esl" />
-			<x12:schema value="/x12/004010/820.esl" />
-			<x12:schema value="/x12/004010/860.esl" />
-		</x12:schemas>
-	</x12:config>
 	<crypto:pgp-config name="crypto-pgp"
-		doc:name="Crypto Pgp" doc:id="47582d74-82c6-43f5-9a58-ebf8a89063ee"
+		doc:name="Crypto Pgp" doc:id="f1553609-cddb-4ae7-b35d-6ceac3c1ea42"
 		publicKeyring="${crypto.publicKeyring}"
 		privateKeyring="${crypto.privateKeyring}">
 		<crypto:pgp-key-infos>
@@ -94,13 +74,48 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 				passphrase="${secure::crypto.passphrase}" />
 		</crypto:pgp-key-infos>
 	</crypto:pgp-config>
-	<global-property doc:name="Global Property"
-		doc:id="a0921f7e-29e0-4103-af13-5952b1290275" name="mule.env"
-		value="dev" />
-	<global-property doc:name="Global Property"
-		doc:id="780cd336-6987-4078-818d-f68b4bbfa0b5" name="mule.key"
-		value="61D47E58735FE36A" />
-	<x12:config name="X12_EDI_Config_write"
+	<x12:config name="X12-edi-read-configuration"
 		doc:name="X12 EDI Config"
-		doc:id="d7a9ae03-ec28-40d8-a436-0b13d17cf1c4" interchangeIdQualifierSelf="${write.muleId}" interchangeIdSelf="${write.muleInterchangeId}" groupIdSelf="${write.muleCode}" interchangeIdQualifierPartner="#[vars.partnerDetails.partnerId]" interchangeIdPartner="#[vars.partnerDetails.interchangeId]" groupIdPartner="#[vars.partnerDetails.partnerAppCode]"/>
+		doc:id="ec9a4d80-e2c1-423b-b77f-845a3d8c87de"
+		requireUniqueInterchanges="false" requireUniqueTransactionSets="true">
+		<x12:schemas>
+			<x12:schema value="/x12/004010/850.esl" />
+			<x12:schema value="/x12/004010/820.esl" />
+			<x12:schema value="/x12/004010/860.esl" />
+		</x12:schemas>
+	</x12:config>
+	<x12:config name="X12-edi-write-configuration"
+		doc:name="X12 EDI Config"
+		doc:id="44b6708d-1c6c-4e08-ab6c-ea3dce29a41d"
+		interchangeIdQualifierSelf="${edi.write.muleId}"
+		interchangeIdSelf="${edi.write.muleInterchangeId}"
+		groupIdSelf="${edi.write.muleCode}"
+		interchangeIdQualifierPartner="#[vars.partnerDetails.partnerId]"
+		interchangeIdPartner="#[vars.partnerDetails.interchangeId]"
+		groupIdPartner="#[vars.partnerDetails.partnerAppCode]" />
+	<os:object-store
+		name="os-document-processing-time-stamp" doc:name="Object store"
+		doc:id="70acf7c0-6fff-49a7-bcf7-632d16f01eed" entryTtl="${os.ttl}" entryTtlUnit="DAYS" expirationInterval="${os.interval}" expirationIntervalUnit="DAYS"/>
+	<configuration-properties
+		doc:name="configuration-properties"
+		doc:id="abdafc4b-457a-498a-83dd-6bbb468dd343"
+		file="properties\common\common.yaml"
+		doc:description="Common yaml&#10;" />
+	<configuration doc:name="exception-configuration"
+		doc:id="da15166a-5d9d-4b77-a80d-4743c6e90e45"
+		defaultErrorHandler-ref="common-exception-handler"
+		doc:description="Exception Handler&#10;" />
+	<configuration-properties
+		doc:name="configuration-properties"
+		doc:id="77d40699-0746-4cbf-a9b5-b9460b401894"
+		file="properties/config-${mule.env}.yaml" />
+	<secure-properties:config
+		name="secure-properties-configuration"
+		doc:name="Secure Properties Config"
+		doc:id="b2483980-3478-433f-952b-84d2ea9109a8"
+		file="properties/secure/config-${mule.env}-secure.yaml"
+		key="${mule.key}">
+	</secure-properties:config>
+	<global-property doc:name="Global Property" doc:id="29ca3ee3-91f1-46ab-9014-e75d73952613" name="mule.env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="201563f2-eb93-4d59-a91f-32684dd7e0b0" name="mule.key" value="61D47E58735FE36A"/>
 </mule>

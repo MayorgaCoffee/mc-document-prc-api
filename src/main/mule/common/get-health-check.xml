@@ -24,7 +24,7 @@ output application/json encoding="UTF-8"
 				</ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="END" doc:id="c2bd7e90-de43-423c-a38b-50afa8202b54" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "End of flow : " ++ flow.name,&#10;    message: "Health Check Flow Ended",&#10;    correlationId: vars.correlationId&#10;}]'/>
+		<logger level="INFO" doc:name="END" doc:id="c2bd7e90-de43-423c-a38b-50afa8202b54" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	flow: "End of flow : " ++ flow.name,&#10;	message: "Health Check Flow Ended",&#10;	correlationId: vars.correlationId,&#10;	payload: payload&#10;}]'/>
 	</sub-flow>
 
 </mule>

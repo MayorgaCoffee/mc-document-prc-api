@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:x12="http://www.mulesoft.org/schema/mule/x12"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/x12 http://www.mulesoft.org/schema/mule/x12/current/mule-x12.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd">
+	<sub-flow name="edi-inbound-document-processing-sub-flow" doc:id="c386ba24-eecd-4f96-86ed-61f6609d23e8" >
+		<logger level="INFO" doc:name="START" doc:id="4b8451b4-f771-48b3-b357-4f08848cd103" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "Start of flow : " ++ flow.name,&#10;    message: "EDI inbound document processing started",&#10;    correlationId: vars.correlationId,&#10;    transactionType: vars.transactionType,&#10;    customerName : vars.customerName&#10;}]'/>
+		<crypto:pgp-decrypt doc:name="EDI message" doc:id="0b89cf4d-444c-4e3a-a28a-849102356958" config-ref="crypto-pgp"/>
+		<x12:read doc:name="Transform EDI to JSON" doc:id="832acbe2-6c37-4046-82a2-4d0dd23f5ee6" config-ref="X12-edi-read-configuration"/>
+		<ee:transform doc:name="var : dwlFilePath, recordType, operation" doc:id="530e9cde-c5c9-40ea-b254-80945b9d7668" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="dwlFilePath" ><![CDATA[%dw 2.0
+output application/java
+var dwlFilePath = 'classpath://dwl/' ++ vars.transactionType ++ "-" ++ vars.customerName ++ '.dwl'
+---
+readUrl(dwlFilePath, 'text/plain')]]></ee:set-variable>
+				<ee:set-variable variableName="recordType" ><![CDATA[%dw 2.0
+output application/java
+---
+if (vars.transactionType ~= '850') "salesOrder" 
+else if (vars.transactionType ~= '820') "customerPayment"
+else if (vars.transactionType ~= '860') "unknown"
+else "Unsupported Record Type"]]></ee:set-variable>
+				<ee:set-variable variableName="operation" ><![CDATA[%dw 2.0
+output application/java
+---
+if (vars.transactionType ~= '850') "add" 
+else if (vars.transactionType ~= '820') "add"
+else if (vars.transactionType ~= '860') "update"
+else "Unsupported Record Type"]]></ee:set-variable>
+			</ee:variables>
+		
+</ee:transform>
+		<ee:dynamic-evaluate doc:name="NetSuite Payload" doc:id="fdb152d2-bbae-4830-a990-8f4790ed32ba" expression="#[vars.dwlFilePath]">
+			<ee:parameters >#[{payload : payload}]</ee:parameters>
+		</ee:dynamic-evaluate>
+		<http:request method="POST" doc:name="POST : transaction" doc:id="d176151f-e814-4017-993a-ad5257c21dd0" sendCorrelationId="ALWAYS" config-ref="mc-sys-api-request-configuration" path="${netsuite.sapi.path}" outputMimeType="application/xml" correlationId="#[vars.correlationId]">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	recordType : vars.recordType,
+	operation : vars.operation
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="END" doc:id="e27f320b-bd31-49ac-bfd6-f6303cd0cabd" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    flow : "End of flow : " ++ flow.name,&#10;    message: "EDI inbound document processing Ended",&#10;    correlationId: vars.correlationId&#10;}]'/>
+	
+</sub-flow>
+</mule>

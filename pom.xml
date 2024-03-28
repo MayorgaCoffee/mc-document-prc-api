@@ -145,6 +145,13 @@
 			<version>11.8.1</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
+		<dependency>
+			<groupId>d5150cda-4592-478a-b718-23ff3e2b60a3</groupId>
+			<artifactId>mc-document-prc-api</artifactId>
+			<version>1.0.1</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
+		</dependency>
 	</dependencies>
 
 	<repositories>
